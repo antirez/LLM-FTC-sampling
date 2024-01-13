@@ -85,10 +85,11 @@ def generate_step(
         random.seed(time.monotonic_ns())
         mx.random.seed(time.monotonic_ns())
 
-        probs = np.array(mx.softmax(logits))
-        cutoff_internal = cutoff * np.max(probs, axis=-1)
-        accepted_logits = mx.array(np.where(probs >= cutoff_internal, logits, -1e10))
-        token_id = mx.random.categorical(mx.array(accepted_logits))
+        logits = mx.softmax(logits)
+        np_logits = np.array(logits) # MX -> NumPy
+        co = cutoff * np.max(np_logits, axis=-1)
+        accepted_logits = mx.array(np.where(np_logits >= co, logits, -1e10))
+        token_id = mx.random.categorical(accepted_logits)
         return mx.array(token_id)
 
 
