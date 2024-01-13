@@ -81,6 +81,17 @@ def generate_step(
         Generator[mx.array]: A generator producing one token per call.
     """
 
+    def sample_mononofu(logits: mx.array) -> mx.array:
+        random.seed(time.monotonic_ns())
+        mx.random.seed(time.monotonic_ns())
+
+        probs = np.array(mx.softmax(logits))
+        cutoff_internal = cutoff * np.max(probs, axis=-1)
+        accepted_logits = mx.array(np.where(probs >= cutoff_internal, logits, -1e10))
+        token_id = mx.random.categorical(mx.array(accepted_logits))
+        return mx.array(token_id)
+
+
     def sample(logits: mx.array) -> mx.array:
         random.seed(time.monotonic_ns())
         mx.random.seed(time.monotonic_ns())
@@ -109,7 +120,7 @@ def generate_step(
     while True:
         logits, cache = model(y[None], cache=cache)
         logits = logits[:, -1, :]
-        y = sample(logits)
+        y = sample_mononofu(logits)
         yield y
 
 
