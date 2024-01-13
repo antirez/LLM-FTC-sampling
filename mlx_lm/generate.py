@@ -8,7 +8,7 @@ from .utils import generate_step, load
 DEFAULT_MODEL_PATH = "mlx_model"
 DEFAULT_PROMPT = "hello"
 DEFAULT_MAX_TOKENS = 100
-DEFAULT_TEMP = 0.6
+DEFAULT_CO = 0.7
 DEFAULT_SEED = 0
 
 
@@ -32,7 +32,7 @@ def setup_arg_parser():
         help="Maximum number of tokens to generate",
     )
     parser.add_argument(
-        "--temp", type=float, default=DEFAULT_TEMP, help="Sampling temperature"
+        "--sampling-cutoff", type=float, default=DEFAULT_CO, help="Sampling cutoff"
     )
     parser.add_argument("--seed", type=int, default=DEFAULT_SEED, help="PRNG seed")
     return parser
@@ -49,7 +49,7 @@ def main(args):
     tokens = []
     skip = 0
     for token, n in zip(
-        generate_step(prompt, model, args.temp), range(args.max_tokens)
+        generate_step(prompt, model, args.sampling_cutoff), range(args.max_tokens)
     ):
         if token == tokenizer.eos_token_id:
             break

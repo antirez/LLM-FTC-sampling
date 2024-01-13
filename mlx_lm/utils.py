@@ -67,7 +67,7 @@ def get_model_path(path_or_hf_repo: str) -> Path:
 
 
 def generate_step(
-    prompt: mx.array, model: nn.Module, temp: float = 0.0
+    prompt: mx.array, model: nn.Module, cutoff: float = 7.0
 ) -> Generator[mx.array, None, None]:
     """
     A generator producing text based on the given prompt from the model.
@@ -91,10 +91,9 @@ def generate_step(
         sorted_indices = np.argsort(np_logits)
         sorted_indices = sorted_indices[::-1]
 
-        cp = 0.7
         j = 1
         t0 = np_logits[sorted_indices[0]]
-        while 1 - (np_logits[sorted_indices[j]] / t0) < cp and j < len(np_logits):
+        while 1 - (np_logits[sorted_indices[j]] / t0) < cutoff and j < len(np_logits):
             j += 1
         accepted_logits = []
         for i in range(0,j):
