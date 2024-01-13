@@ -1,0 +1,4 @@
+mlx
+numpy
+transformers
+protobuf
