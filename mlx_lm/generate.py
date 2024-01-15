@@ -11,7 +11,6 @@ DEFAULT_MAX_TOKENS = 100
 DEFAULT_CO = 0.7
 DEFAULT_SEED = 0
 
-
 def setup_arg_parser():
     """Set up and return the argument parser."""
     parser = argparse.ArgumentParser(description="LLM inference script")
@@ -35,8 +34,35 @@ def setup_arg_parser():
         "--sampling-cutoff", type=float, default=DEFAULT_CO, help="Sampling cutoff"
     )
     parser.add_argument("--seed", type=int, default=DEFAULT_SEED, help="PRNG seed")
+    parser.add_argument("--colorize",
+                        action='store_true',
+                        help="Colorize output based on T[0] probability")
     return parser
 
+def colorprint(color, s):
+    color_codes = {
+        'black': 30,
+        'red': 31,
+        'green': 32,
+        'yellow': 33,
+        'blue': 34,
+        'magenta': 35,
+        'cyan': 36,
+        'white': 39,
+    }
+    ccode = color_codes.get(color, 30)
+    print(f"\033[1m\033[{ccode}m{s}\033[0m", end="", flush=True)
+
+def colorprint_by_t0(t0, s):
+    if t0 > 0.95:
+        color = 'white'
+    elif t0 > 0.70:
+        color = 'green'
+    elif t0 > 0.30:
+        color = 'yellow'
+    else:
+        color = 'red'
+    colorprint(color,s)
 
 def main(args):
     mx.random.seed(args.seed)
@@ -51,6 +77,7 @@ def main(args):
     for token, n in zip(
         generate_step(prompt, model, args.sampling_cutoff), range(args.max_tokens)
     ):
+        t0,token = token
         if token == tokenizer.eos_token_id:
             break
         if n == 0:
@@ -58,8 +85,14 @@ def main(args):
             tic = time.time()
         tokens.append(token.item())
         s = tokenizer.decode(tokens)
-        print(s[skip:], end="", flush=True)
+
+        if args.colorize:
+            colorprint_by_t0(t0,s[skip:])
+        else:
+            print(s[skip:], end="", flush=True)
+
         skip = len(s)
+
     print(tokenizer.decode(tokens)[skip:], flush=True)
     gen_time = time.time() - tic
     print("=" * 10)

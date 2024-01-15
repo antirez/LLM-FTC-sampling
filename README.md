@@ -19,6 +19,23 @@ Finally try the inference:
 
 The default cutoff is 0.7 (tokens up to 70% worse than the best scoring token are accepted for sampling), but you can change this with the `--sampling-cutoff` option in the command line. A cutoff of 0 will make the generation deterministic, always selecting the first token. A cutoff of 1 will consider all the possible tokens and makes no sense. More interesting values are between 0.05 and 0.99, depending on the variability you want.
 
+## Output colorization
+
+If you add the `--colorize` option in the generate command line above, the output of the LLM will be colorized based on the probability of the best token (regardless of the token that is sampled). These are the intervals used:
+
+```
+if t0 > 0.95:
+    color = 'white'
+elif t0 > 0.70:
+    color = 'green'
+elif t0 > 0.30:
+    color = 'yellow'
+else:
+    color = 'red'
+```
+
+First token strength is an interesting hint on the model internal state, especially if the model is outputting dates or other factual information: it is often possible to tell, in such cases, if the model is likely hallucinating or not.
+
 ## Sampling algorithm used
 
 This is how the algorithm works:

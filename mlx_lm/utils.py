@@ -102,15 +102,15 @@ def generate_step(
         idx = mx.random.categorical(accepted_logits)
         idx = int(np.array(idx)) # We can't convert zero-dim array without passing from numpy
         c = sorted_indices[idx]
-        return mx.array(np.array([c]))
+        return (t0,mx.array(np.array([c])))
 
     y = prompt
     cache = None
     while True:
         logits, cache = model(y[None], cache=cache)
         logits = logits[:, -1, :]
-        y = sample(logits)
-        yield y
+        t0,y = sample(logits)
+        yield (t0,y)
 
 
 def generate(
